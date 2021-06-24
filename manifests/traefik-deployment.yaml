@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    prometheus.io/port: http-metrics
+    prometheus.io/scrape: "true"
+  labels:
+    app: traefik
+  name: traefik
+  namespace: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      containers:
+      - name: traefik
+        ports:
+        - containerPort: 80
+          name: web
+        - containerPort: 8080
+          name: admin
+        - containerPort: 8082
+          name: http-metrics
+        args:
+        - --log.level=INFO
+        - --api
+        - --api.dashboard
+        - --api.insecure
+        - --entrypoints.web.address=:80
+        - --providers.kubernetescrd
+        - --metrics.prometheus.entryPoint=metrics
+        - --entryPoints.metrics.address=:8082
+        - --accesslog=true
+        - --ping
+        - --ping.entryPoint=web
+        image: traefik:v2.3
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 80

@@ -1,0 +1,33 @@
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: traefik-cert
+spec:
+  domains:
+  - mydomain.com
+  - api.mydomain.com
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: traefik-frontend-cfg
+  namespace: traefik
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: PERMANENT_REDIRECT
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1beta1
+metadata:
+  name: myingress
+  namespace: traefik
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "traefik-ip"
+    networking.gke.io/v1beta1.FrontendConfig: "traefik-frontend-cfg"
+    networking.gke.io/managed-certificates: "traefik-cert"
+spec:
+  backend:
+    serviceName: traefik
+    servicePort: 80

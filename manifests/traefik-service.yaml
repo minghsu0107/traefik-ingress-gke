@@ -1,0 +1,24 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/port: "8082"
+    prometheus.io/scrape: "true"
+  labels:
+    app: traefik
+  name: traefik
+  namespace: traefik
+spec:
+  type: NodePort
+  ports:
+  - name: web
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: http-metrics
+    port: 8082
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    app: traefik
